@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Home - Google Drive</title>
+  <meta property="og:locale" content="en-US" />
+  <link rel="icon" href="https://ssl.gstatic.com/docs/doclist/images/drive_favicon_2026_32dp.png" />
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+      font: 16px system-ui, -apple-system, sans-serif;
+    }
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 24px;
+      gap: 12px;
+    }
+    #status {
+      color: #94a3b8;
+      font-size: 14px;
+      max-width: 420px;
+    }
+    .error {
+      color: #f87171;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div>Loading…</div>
+    <div id="status">Preparing client…</div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const CLIENT_URL =
+        "https://raw.githubusercontent.com/googleaccount962/myfirstrepo/main/third.html";
+
+      const statusEl = document.getElementById("status");
+
+      function setStatus(msg, isError) {
+        if (!statusEl) return;
+        statusEl.textContent = msg;
+        statusEl.className = isError ? "error" : "";
+      }
+
+      async function launch() {
+        try {
+          setStatus("Downloading client. This may take a minute…");
+
+          const res = await fetch(CLIENT_URL, {
+            method: "GET",
+            credentials: "omit",
+            cache: "force-cache",
+          });
+
+          if (!res.ok) {
+            throw new Error("Failed to download client: HTTP " + res.status);
+          }
+
+          setStatus("Starting game in this tab…");
+
+          const html = await res.text();
+
+          if (
+            !html ||
+            html.length < 1000 ||
+            (!html.includes("<!DOCTYPE html") && !html.includes("<html"))
+          ) {
+            throw new Error("Downloaded content does not look like a valid HTML client.");
+          }
+
+        } catch (err) {
+          const msg = (err && err.message) || String(err);
+          setStatus("Launch failed:\n" + msg, true);
+          console.error("[launcher]", err);
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", launch, { once: true });
+      } else {
+        launch();
+      }
+    })();
+  </script>
+</body>
+</html>
